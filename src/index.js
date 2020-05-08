@@ -33,6 +33,7 @@ function fetchToys(){
     return resp.json()
   })
   .then((obj) => {  
+    //obj is an array of toy objects
     for (const toy of obj){
       createToyCard(toy)
        
@@ -47,6 +48,8 @@ function createToyCard(toy){
     //to the toy-collection div
     const card = document.createElement('div')
     card.classList += "card"
+    //add id so can use later in patch request later
+    card.id = `${toy.id}-toy`
     
     const cardHeader = document.createElement('h2')
     cardHeader.innerText += toy.name
@@ -64,7 +67,9 @@ function createToyCard(toy){
     const likeButton = document.createElement('button')
     likeButton.classList += "like-btn"
     likeButton.innerText += "Like <3"
+    likeButton.addEventListener('click', addLike)
     card.appendChild(likeButton)
+
     
     //add card to toy collection
     toyCollection.appendChild(card)
@@ -73,8 +78,10 @@ function createToyCard(toy){
 
 function postToy(event){
   event.preventDefault()
-  const name = event.target.name.value 
-  const imgUrl = event.target.image.value 
+  const nameInput = event.target.name
+  const imageInput = event.target.image
+  const name = nameInput.value 
+  const imgUrl = imageInput.value 
   
   const formData = {
     name: name,
@@ -100,4 +107,37 @@ function postToy(event){
       console.log(error.message)
     })
     //clear form
+    nameInput.value = ""
+    imageInput.value = ""
+    
+
+}
+
+function addLike(event){
+  //Conditional increase to the toy's like count without reloading the page
+  const likeCounter = event.target.previousElementSibling
+  let likes = parseInt(likeCounter.innerText) // takes integer out of string -integer needs to be first though
+  likes++ //has to be let to be able to do this
+  likeCounter.innerText = `${likes} Likes`
+
+  let toyID = parseInt(event.target.parentElement.id)
+
+  //A patch request sent to the server at http://localhost:3000/toys/:id updating the number of likes that the specific toy has
+  const likeData = {likes: likes} // can also do {likes} b/c of destructuring
+
+  const configObj = {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(likeData)
+  }
+
+  fetch(`http://localhost:3000/toys/${toyID}`, configObj)
+    .then((response) => {response.json()})
+    .then((object) => {
+      console.log(object)
+    })
+    .catch((error) => console.log(error.message))
 }
