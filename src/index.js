@@ -1,18 +1,13 @@
+
+
 let addToy = false;
 
-
 document.addEventListener("DOMContentLoaded", () => {
-  
-  addEventListeners()
-
-});
-
-function addEventListeners(){
   addToyForm()
   fetchToys()
   const toyForm = document.querySelector(".add-toy-form")
   toyForm.addEventListener('submit', postToy)
-}
+});
 
 function addToyForm(){
   const addBtn = document.querySelector("#new-toy-btn");
@@ -29,67 +24,71 @@ function addToyForm(){
 }
 
 function fetchToys(){
-  //post requests require 2nd argument to fetch, get does not
+  //When the page loads, 
+//make a 'GET' request to fetch all the toy objects. 
 
-  fetch('http://localhost:3000/toys')
+
+  fetch("http://localhost:3000/toys")
   .then((resp) => {
     return resp.json()
   })
-  .then((json) => {
-    //json is object, use for...in
-    for (key in json){
-      const toy = json[key] //defining explainer variables good, make sure to name well
+  .then((obj) => {  
+    for (const toy of obj){
       createToyCard(toy)
-      
+       
     }
   })
 
 }
 
 function createToyCard(toy){
-  const toyCollection = document.getElementById("toy-collection")
-  //WHERE IS BEST PLACE TO DEFINE ABOVE?
-  const card = document.createElement('div') //just card, not cardDiv - superfluous
-  card.classList += "card"
+    const toyCollection = document.getElementById("toy-collection")
+  //With the response data, make a <div class="card"> for each toy and add it 
+    //to the toy-collection div
+    const card = document.createElement('div')
+    card.classList += "card"
+    
+    const cardHeader = document.createElement('h2')
+    cardHeader.innerText += toy.name
+    card.appendChild(cardHeader)
 
-  const cardHeader = document.createElement('h2')
-  cardHeader.innerText += toy.name
-  card.appendChild(cardHeader)
+    const avatar = document.createElement('img')
+    avatar.classList += "toy-avatar"
+    avatar.src = toy.image 
+    card.appendChild(avatar)
 
-  const avatar = document.createElement('img')
-  avatar.src = toy.image
-  avatar.classList += "toy-avatar"
-  card.appendChild(avatar)
+    const likes = document.createElement('p')
+    likes.innerText += `${toy.likes} Likes`
+    card.appendChild(likes)
 
-  const likes = document.createElement('p')
-  likes.innerText += `${toy.likes} Likes`
-  card.appendChild(likes)
-
-  const likeButton = document.createElement('button')
-  likeButton.classList += "like-button"
-  likeButton.innerText += "Like"
-  likeButton.addEventListener('click', addLikes)
-  card.appendChild(likeButton)
-
-  toyCollection.appendChild(card)
+    const likeButton = document.createElement('button')
+    likeButton.classList += "like-btn"
+    likeButton.innerText += "Like <3"
+    card.appendChild(likeButton)
+    
+    //add card to toy collection
+    toyCollection.appendChild(card)
 
 }
 
 function postToy(event){
   event.preventDefault()
-  //create object out of user input
-  const name = event.target.elements[0].value
-  const img = event.target.elements[1].value
-  const newToy = {name: name, image: img, likes: 0}
+  const name = event.target.name.value 
+  const imgUrl = event.target.image.value 
   
-  //post fetch request with objects
-  let configObj = {
+  const formData = {
+    name: name,
+    image: imgUrl,
+    likes: 0
+  }
+
+  const configObj = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: JSON.stringify(newToy)
+    body: JSON.stringify(formData)
   }
 
   fetch("http://localhost:3000/toys", configObj)
@@ -100,11 +99,5 @@ function postToy(event){
     .catch((error) => {
       console.log(error.message)
     })
-
+    //clear form
 }
-
-function addLikes(event) {
-  console.log('liked')
-}
-
-const dummylink = "https://www.freeiconspng.com/uploads/slinky-png-transparent-1.png"
